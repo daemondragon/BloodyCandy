@@ -25,6 +25,10 @@ public class Terrain
         this.width = width;
         this.height = height;
         tiles = new int[width][height];
+        for (int x = 0; x < width; ++x)
+            for (int y = 0; y < height; ++y)
+                tiles[x][y] = 0;
+
         return (true);
     }
 
