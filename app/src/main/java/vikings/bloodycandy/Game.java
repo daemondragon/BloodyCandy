@@ -11,6 +11,8 @@ import android.view.View;
 
 import junit.framework.Assert;
 
+import java.util.Random;
+
 import static vikings.bloodycandy.R.string.*;
 
 /**
@@ -60,6 +62,12 @@ public class Game extends View
         tiles_src.top = 0;
         tiles_src.right = tiles_pictures[0].getWidth();
         tiles_src.bottom = tiles_pictures[0].getHeight();
+
+        Random random = new Random();
+
+        for (int x = 0; x < terrain.width(); ++x)
+            for (int y = 0; y < terrain.height(); ++y)
+                terrain.set(Math.abs(random.nextInt()) % 16, x, y);
     }
 
     public void onDraw(Canvas canvas)
