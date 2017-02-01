@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.util.AttributeSet;
 import android.view.View;
 
 import junit.framework.Assert;
@@ -30,8 +31,8 @@ public class Game extends View
     private int inline_padding;
     private int offset_y;//To place the terrain at the bottom of the screen
 
-    public Game(Context context) {
-        super(context);
+    public Game(Context context, AttributeSet attrs) {
+        super(context, attrs);
 
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setARGB(255, 0, 244, 128);

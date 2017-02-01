@@ -10,7 +10,7 @@ public class Board
     private int         height;
     private Block[][]   blocks;
 
-    public Boardgit(int width, int height)
+    public Board(int width, int height)
     {
         this.width = 0;
         this.height = 0;
