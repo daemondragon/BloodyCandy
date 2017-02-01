@@ -4,13 +4,13 @@ package vikings.bloodycandy;
  * Created by Jeremy on 31/01/2017.
  */
 
-public class Terrain
+public class Board
 {
     private int         width;
     private int         height;
     private Block[][]   blocks;
 
-    public Terrain(int width, int height)
+    public Boardgit(int width, int height)
     {
         this.width = 0;
         this.height = 0;

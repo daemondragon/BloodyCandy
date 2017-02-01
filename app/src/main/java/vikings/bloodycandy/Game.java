@@ -13,8 +13,6 @@ import junit.framework.Assert;
 
 import java.util.Random;
 
-import static vikings.bloodycandy.R.string.*;
-
 /**
  * Created by Jeremy on 31/01/2017.
  */
@@ -22,7 +20,7 @@ import static vikings.bloodycandy.R.string.*;
 public class Game extends View
 {
     private Paint paint;
-    private Terrain terrain;
+    private Board terrain;
     private Bitmap[] tiles_pictures;
     Rect            tiles_src;
     Rect            tiles_dest;
@@ -40,7 +38,7 @@ public class Game extends View
         paint.setStyle(Paint.Style.FILL);
         paint.setTextSize(32);
 
-        terrain = new Terrain(getResources().getInteger(R.integer.nb_blocs_width),
+        terrain = new Board(getResources().getInteger(R.integer.nb_blocs_width),
                 getResources().getInteger(R.integer.nb_blocs_height));
 
         TypedArray pictures_id = getResources().obtainTypedArray(R.array.block_pictures);
