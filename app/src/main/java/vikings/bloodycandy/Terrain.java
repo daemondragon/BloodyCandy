@@ -6,9 +6,9 @@ package vikings.bloodycandy;
 
 public class Terrain
 {
-    private int     width;
-    private int     height;
-    private int[][] tiles;
+    private int         width;
+    private int         height;
+    private Block[][]   blocks;
 
     public Terrain(int width, int height)
     {
@@ -24,10 +24,10 @@ public class Terrain
 
         this.width = width;
         this.height = height;
-        tiles = new int[width][height];
+        blocks = new Block[width][height];
         for (int x = 0; x < width; ++x)
             for (int y = 0; y < height; ++y)
-                tiles[x][y] = 0;
+                blocks[x][y] = new Block();
 
         return (true);
     }
@@ -38,19 +38,18 @@ public class Terrain
                 y >= 0 && y < height);
     }
 
-    public int get(int x, int y)
+    public Block get(int x, int y)
     {
         if (isInside(x, y))
-            return (tiles[x][y]);
+            return (blocks[x][y]);
         else
-            return (0);
+            return (new Block());
     }
-
-    public boolean set(int tile, int x, int y)
+    public boolean set(Block block, int x, int y)
     {
         if (isInside(x, y))
         {
-            tiles[x][y] = tile;
+            blocks[x][y] = block;
             return (true);
         }
         else
@@ -61,7 +60,6 @@ public class Terrain
     {
         return (width);
     }
-
     public int height()
     {
         return (height);

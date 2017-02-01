@@ -32,8 +32,7 @@ public class Game extends View
     private int inline_padding;
     private int offset_y;//To place the terrain at the bottom of the screen
 
-    public Game(Context context)
-    {
+    public Game(Context context) {
         super(context);
 
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -42,11 +41,11 @@ public class Game extends View
         paint.setTextSize(32);
 
         terrain = new Terrain(getResources().getInteger(R.integer.nb_blocs_width),
-                              getResources().getInteger(R.integer.nb_blocs_height));
+                getResources().getInteger(R.integer.nb_blocs_height));
 
         TypedArray pictures_id = getResources().obtainTypedArray(R.array.block_pictures);
 
-        Assert.assertNotNull("pictures_id is null",pictures_id);
+        Assert.assertNotNull("pictures_id is null", pictures_id);
 
         tiles_pictures = new Bitmap[pictures_id.length()];
         for (int i = 0; i < tiles_pictures.length; ++i)
@@ -66,8 +65,13 @@ public class Game extends View
         Random random = new Random();
 
         for (int x = 0; x < terrain.width(); ++x)
+        {
             for (int y = 0; y < terrain.height(); ++y)
-                terrain.set(Math.abs(random.nextInt()) % 16, x, y);
+            {
+                terrain.get(x, y).setId(Math.abs(random.nextInt() % 16));
+                terrain.get(x, y).setType(Block.Type.Normal);
+            }
+        }
     }
 
     public void onDraw(Canvas canvas)
@@ -78,15 +82,15 @@ public class Game extends View
         {
             for (int y = 0; y < terrain.height(); ++y)
             {
-                int tile_id = terrain.get(x, y);
-                if (tile_id != 0)
+                Block block = terrain.get(x, y);
+                if (block.getType() == Block.Type.Normal)
                 {
                     tiles_dest.top = border_padding + y * (tile_size + inline_padding) + offset_y;
                     tiles_dest.left = border_padding + x * (tile_size + inline_padding);
                     tiles_dest.bottom = tiles_dest.top + tile_size;
                     tiles_dest.right = tiles_dest.left + tile_size;
 
-                    canvas.drawBitmap(tiles_pictures[tile_id - 1], tiles_src, tiles_dest, paint);
+                    canvas.drawBitmap(tiles_pictures[block.getId()], tiles_src, tiles_dest, paint);
                 }
             }
         }
