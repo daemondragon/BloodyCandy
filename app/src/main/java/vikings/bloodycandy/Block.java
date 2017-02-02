@@ -47,4 +47,8 @@ public class Block
     {
         return (id);
     }
+    public boolean isSame(Block block)
+    {
+        return (type == block.getType() && id == block.getId());
+    }
 }

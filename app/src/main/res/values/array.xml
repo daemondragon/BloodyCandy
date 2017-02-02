@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <integer-array name="block_pictures">
+    <integer-array name="tiles_pictures">
         <item>@drawable/b1</item>
         <item>@drawable/b2</item>
         <item>@drawable/b3</item>
@@ -17,6 +17,5 @@
         <item>@drawable/b14</item>
         <item>@drawable/b15</item>
         <item>@drawable/b16</item>
-
     </integer-array>
 </resources>
