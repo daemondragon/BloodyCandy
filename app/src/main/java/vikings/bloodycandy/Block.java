@@ -51,4 +51,13 @@ public class Block
     {
         return (type == block.getType() && id == block.getId());
     }
+    public void destroy()
+    {
+        type = Type.Empty;
+        id = 0;
+    }
+    public boolean isMovable()
+    {
+        return (type != Type.Empty && type != Type.Hole);
+    }
 }

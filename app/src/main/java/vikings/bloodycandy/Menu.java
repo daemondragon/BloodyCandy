@@ -1,6 +1,7 @@
 package vikings.bloodycandy;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 
 /**
@@ -13,5 +14,12 @@ public class Menu extends Activity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu);
+
+        launchGame();
+    }
+
+    public void launchGame()
+    {
+        startActivity(new Intent(this, Game.class));
     }
 }
