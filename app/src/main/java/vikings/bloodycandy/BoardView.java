@@ -6,7 +6,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.provider.Settings;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -26,7 +28,8 @@ public class BoardView extends View
     private int tile_size;
     private int inline_padding;
 
-    Board       board;
+    private Board board;
+    private long lastFrameTime;
 
     public BoardView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -36,6 +39,10 @@ public class BoardView extends View
         tiles_dest = new Rect();
         board = new Board(getResources().getInteger(R.integer.nb_blocs_width),
                 getResources().getInteger(R.integer.nb_blocs_height));
+
+        Block.setGravity(getResources().getInteger(R.integer.gravity) / 100.f);
+
+        lastFrameTime = System.currentTimeMillis();
     }
 
     public void loadPictures()
@@ -62,11 +69,13 @@ public class BoardView extends View
     {
         super.onDraw(canvas);
 
+        long currentFrameTime = System.currentTimeMillis();
+        board.update((currentFrameTime - lastFrameTime) / 1000.f);
+        lastFrameTime = currentFrameTime;
+
         drawBackground(canvas);
         drawBoard(canvas);
         drawBlocks(canvas);
-
-        board.update();
 
         invalidate();
     }
@@ -102,7 +111,7 @@ public class BoardView extends View
                 Block block = board.get(x, y);
                 if (block.getType() == Block.Type.Normal)
                 {
-                    tiles_dest.top = inline_padding / 2 + y * (tile_size + inline_padding);
+                    tiles_dest.top = inline_padding / 2 + (int)((y - block.getFallingStatus()) * (tile_size + inline_padding));
                     tiles_dest.left = inline_padding / 2 + x * (tile_size + inline_padding);
                     tiles_dest.bottom = tiles_dest.top + tile_size;
                     tiles_dest.right = tiles_dest.left + tile_size;

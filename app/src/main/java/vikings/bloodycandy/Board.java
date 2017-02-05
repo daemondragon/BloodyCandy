@@ -1,17 +1,6 @@
 package vikings.bloodycandy;
 
-import android.content.Context;
-import android.content.res.TypedArray;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Rect;
-import android.util.AttributeSet;
 import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
-
-import junit.framework.Assert;
 
 import java.util.Random;
 
@@ -124,10 +113,13 @@ public class Board
 
     private boolean canDestroyHorizontally(int x, int y)
     {
+        if (get(x, y).is_falling)
+            return (false);
+
         int sum_x = 1;
-        for (int i = x - 1; isInside(i, y) && blocks[i][y].isSame(blocks[x][y]); i--)
+        for (int i = x - 1; isInside(i, y) && get(i, y).isSame(get(x, y)) && !get(i, y).is_falling; i--)
             sum_x++;
-        for (int i = x + 1; isInside(i, y) && blocks[i][y].isSame(blocks[x][y]); i++)
+        for (int i = x + 1; isInside(i, y) && get(i, y).isSame(get(x, y)) && !get(i, y).is_falling; i++)
             sum_x++;
 
         return (sum_x >= 3);
@@ -135,10 +127,13 @@ public class Board
 
     private boolean canDestroyVertically(int x, int y)
     {
+        if (get(x, y).is_falling)
+            return (false);
+
         int sum_y = 1;
-        for (int j = y - 1; isInside(x, j) && blocks[x][j].isSame(blocks[x][y]); j--)
+        for (int j = y - 1; isInside(x, j) && get(x, j).isSame(get(x, y)) && !get(x, j).is_falling; j--)
             sum_y++;
-        for (int j = y + 1; isInside(x, j) && blocks[x][j].isSame(blocks[x][y]); j++)
+        for (int j = y + 1; isInside(x, j) && get(x, j).isSame(get(x, y)) && !get(x, j).is_falling; j++)
             sum_y++;
 
         return (sum_y >= 3);
@@ -151,9 +146,9 @@ public class Board
 
     public void destroyVertically(int x, int y)
     {
-        for (int j = y - 1; isInside(x, j) && blocks[x][j].isSame(blocks[x][y]); j--)
+        for (int j = y - 1; isInside(x, j) && get(x, j).isSame(get(x, y)) && !get(x, j).is_falling; j--)
             blocks[x][j].destroy();
-        for (int j = y + 1; isInside(x, j) && blocks[x][j].isSame(blocks[x][y]); j++)
+        for (int j = y + 1; isInside(x, j) && get(x, j).isSame(get(x, y)) && !get(x, j).is_falling; j++)
             blocks[x][j].destroy();
 
         blocks[x][y].destroy();
@@ -161,9 +156,9 @@ public class Board
 
     public void destroyHorizontally(int x, int y)
     {
-        for (int i = x - 1; isInside(i, y) && blocks[i][y].isSame(blocks[x][y]); i--)
+        for (int i = x - 1; isInside(i, y) && get(i, y).isSame(get(x, y)) && !get(i, y).is_falling; i--)
             blocks[i][y].destroy();
-        for (int i = x + 1; isInside(i, y) && blocks[i][y].isSame(blocks[x][y]); i++)
+        for (int i = x + 1; isInside(i, y) && get(i, y).isSame(get(x, y)) && !get(i, y).is_falling; i++)
             blocks[i][y].destroy();
 
         blocks[x][y].destroy();
@@ -184,25 +179,34 @@ public class Board
             if (get(x, 0).getType() == Block.Type.Empty) {
                 get(x, 0).setId(Math.abs(random.nextInt(4)));
                 get(x, 0).setType(Block.Type.Normal);
+                get(x, 0).resetFall();
             }
         }
     }
 
-    public void update()
+    public void update(float delta_time)
     {
         respawnBlocks();
 
-        for (int x = 0; x < width; ++x)
+        for (int y = height - 1; y >= 0; --y)
         {
-            for (int y = height - 1; y >= 0; --y)
+            for (int x = 0; x < width; ++x)
             {
-                if (blocks[x][y].getType() == Block.Type.Empty)
+                if (get(x, y).isMovable())
                 {
+                    float remaining_time = get(x, y).update(delta_time);
+                    if ((y == height - 1 || !get(x, y + 1).is_falling) && get(x, y).isInPlace())
+                        get(x, y).is_falling = false;
+
                     int j = y;
-                    for (; j >= 0 && !blocks[x][j].isMovable(); --j);
-                    if (j >= 0 && blocks[x][j].isMovable())
-                        fastSwap(x, y, x, j);
-                    y = j;
+                    while (remaining_time > 0.f && isInside(x, j + 1) && get(x, j + 1).getType() == Block.Type.Empty)
+                    {
+                        fastSwap(x, j, x, j + 1);
+                        get(x, j + 1).resetFall();
+                        remaining_time = get(x, j + 1).update(remaining_time);
+                        get(x, j +  1).is_falling = true;
+                        j++;
+                    }
                 }
             }
         }
