@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.widget.TextView;
 
 /**
  * Created by Jeremy on 31/01/2017.
@@ -20,6 +21,7 @@ public class Game extends Activity
         setContentView(R.layout.game);
 
         board = (BoardView)findViewById(R.id.board);
+        board.setScoreView((TextView)findViewById(R.id.score));
         gesture_detector = new GestureDetector(this, new GestureDetector.OnGestureListener() {
             @Override
             public boolean onDown(MotionEvent e) {

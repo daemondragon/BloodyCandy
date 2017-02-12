@@ -6,11 +6,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Rect;
-import android.provider.Settings;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import junit.framework.Assert;
 
@@ -27,9 +27,12 @@ public class BoardView extends View
 
     private int tile_size;
     private int inline_padding;
+    private int offset_x;
+    private int offset_y;
 
     private Board board;
     private long lastFrameTime;
+    private TextView score = null;
 
     public BoardView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -43,6 +46,11 @@ public class BoardView extends View
         Block.setGravity(getResources().getInteger(R.integer.gravity) / 100.f);
 
         lastFrameTime = System.currentTimeMillis();
+    }
+
+    public void setScoreView(TextView view)
+    {
+        score = view;
     }
 
     public void loadPictures()
@@ -82,7 +90,8 @@ public class BoardView extends View
 
     void drawBackground(Canvas canvas)
     {
-
+        if (score != null)
+            score.setText("Score:" + board.getScore());
     }
     void drawBoard(Canvas canvas)
     {
@@ -92,8 +101,8 @@ public class BoardView extends View
             {
                 if (board.get(x, y).getType() != Block.Type.Hole)
                 {
-                    tiles_dest.top = y * (tile_size + inline_padding);
-                    tiles_dest.left = x * (tile_size + inline_padding);
+                    tiles_dest.top = y * (tile_size + inline_padding) + offset_y;
+                    tiles_dest.left = x * (tile_size + inline_padding) + offset_x;
                     tiles_dest.bottom = tiles_dest.top + tile_size + inline_padding;
                     tiles_dest.right = tiles_dest.left + tile_size + inline_padding;
 
@@ -111,8 +120,8 @@ public class BoardView extends View
                 Block block = board.get(x, y);
                 if (block.getType() == Block.Type.Normal)
                 {
-                    tiles_dest.top = inline_padding / 2 + (int)((y - block.getFallingStatus()) * (tile_size + inline_padding));
-                    tiles_dest.left = inline_padding / 2 + x * (tile_size + inline_padding);
+                    tiles_dest.top = offset_y + inline_padding / 2 + (int)((y - block.getFallingStatus()) * (tile_size + inline_padding));
+                    tiles_dest.left = offset_x + inline_padding / 2 + x * (tile_size + inline_padding);
                     tiles_dest.bottom = tiles_dest.top + tile_size;
                     tiles_dest.right = tiles_dest.left + tile_size;
 
@@ -124,17 +133,27 @@ public class BoardView extends View
 
     public void onSizeChanged (int w, int h, int old_w, int old_h)
     {
-        float inline_ratio = getResources().getInteger(R.integer.inline_padding_ratio) * 0.01f;
+        offset_x = 0;
+        offset_y = 0;
 
-        float ratio = w / (board.width() + inline_ratio * (board.width()));
+        float inline_ratio = getResources().getInteger(R.integer.inline_padding_ratio) * 0.01f;
+        float ratio = 0.f;
+        if (w < h)//Portrait
+            ratio = w / ((1 + inline_ratio) * board.width());
+        else//Landscape
+            ratio = h / ((1 + inline_ratio) * board.height());
+
         tile_size = (int)(ratio);
         inline_padding = (int)(ratio * inline_ratio);
+
+        if (w < h)//Portrait
+            offset_y = getHeight() - (tile_size + inline_padding) * board.height();
     }
 
     public boolean onFling(MotionEvent e1, MotionEvent e2)
     {
-        int x1 = (int)(e1.getX() - getLeft()) / (inline_padding + tile_size);
-        int y1 = (int)(e1.getY() - getTop()) / (inline_padding + tile_size);
+        int x1 = (int)(e1.getX() - getLeft() - offset_x) / (inline_padding + tile_size);
+        int y1 = (int)(e1.getY() - getTop() - offset_y) / (inline_padding + tile_size);
 
         int x2 = x1;
         int y2 = y1;

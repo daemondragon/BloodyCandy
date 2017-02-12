@@ -18,13 +18,15 @@ public class Block
     private Type        type;
     private int         id;
     private float       falling;//[0.f:1.f] 0.f at position, 1.f falling
-    public  boolean     is_falling;
+    public boolean      is_falling;
+    public float        velocity;
 
     public Block(Type type, int id)
     {
         setType(type);
         setId(id);
-        resetFall();
+        resetFallStatus();
+        velocity = 0.f;
     }
     public Block(Type type)
     {
@@ -67,18 +69,19 @@ public class Block
         if (!isMovable())
             return (0.f);
 
-        float movement = gravity * time;
+        float movement = (velocity + gravity * time) * time;
         if (movement < falling)
         {
             falling -= movement;
-            is_falling = true;
+            velocity += gravity * time;
             return (0.f);
         }
         else
         {
             float not_processed = time - (falling / gravity);
+            velocity += (gravity * time);
+
             falling = 0.f;
-            is_falling = (not_processed != time);
             return (not_processed);
         }
     }
@@ -86,14 +89,28 @@ public class Block
     {
         return (falling <= 0.f);
     }
-    public void resetFall()
+    public void resetFallStatus()
     {
         falling = 1.f;
         is_falling = true;
     }
+    public void stopFall()
+    {
+        is_falling = false;
+        velocity = 0.f;
+    }
     public float getFallingStatus()
     {
         return (falling);
+    }
+    public void setFallingStatus(float status)
+    {
+        if (status < 0.f)
+            falling = 0.f;
+        else if (status > 1.f)
+            falling = 1.f;
+        else
+            falling = status;
     }
 
     public boolean isSame(Block block)
@@ -104,9 +121,14 @@ public class Block
     {
         type = Type.Empty;
         id = 0;
+        velocity = 0.f;
     }
     public boolean isMovable()
     {
         return (type != Type.Empty && type != Type.Hole);
+    }
+    public boolean isDestroyable()
+    {
+        return (isMovable() && !is_falling);
     }
 }
