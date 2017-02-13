@@ -43,6 +43,7 @@ public class BoardView extends View
         board = new Board(getResources().getInteger(R.integer.nb_blocs_width),
                 getResources().getInteger(R.integer.nb_blocs_height));
 
+        board.setNbBlocks(getResources().getInteger(R.integer.nb_blocks));
         Block.setGravity(getResources().getInteger(R.integer.gravity) / 100.f);
 
         lastFrameTime = System.currentTimeMillis();
@@ -91,7 +92,7 @@ public class BoardView extends View
     void drawBackground(Canvas canvas)
     {
         if (score != null)
-            score.setText("Score:" + board.getScore());
+            score.setText(String.format(getResources().getString(R.string.score), board.getScore()));
     }
     void drawBoard(Canvas canvas)
     {

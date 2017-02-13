@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <integer name="nb_blocs_width">5</integer>
-    <integer name="nb_blocs_height">5</integer>
+    <integer name="nb_blocs_height">8</integer>
 
-    <integer name="gravity">100</integer><!-- gravity will be divide by 100 when loaded-->
+    <integer name="gravity">300</integer><!-- gravity will be divide by 100 when loaded-->
 
     <integer name="inline_padding_ratio">25</integer><!-- ratio [0:100] with tile size-->
     <integer name="border_padding_ratio">50</integer><!-- ratio [0:100] with tile size-->
+
+    <integer name="nb_blocks">5</integer>
 </resources>

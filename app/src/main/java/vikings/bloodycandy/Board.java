@@ -11,6 +11,7 @@ public class Board
     private int         width;
     private int         height;
     private Block[][]   blocks;
+    private int         nb_blocks;
 
     Random random;
     int score;
@@ -21,10 +22,16 @@ public class Board
         this.width = 0;
         this.height = 0;
         combo = 1;
+        nb_blocks = 4;
 
         create(width, height);
 
         random = new Random();
+    }
+
+    public void setNbBlocks(int nb_blocks)
+    {
+        this.nb_blocks = (nb_blocks <= 0 ? 1 : nb_blocks);
     }
 
     public boolean create(int width, int height)
@@ -163,7 +170,6 @@ public class Board
         for (int j = y + 1; isInside(x, j) && get(x, j).isSame(get(x, y)) && get(x, j).isDestroyable(); j++, ++sum)
             blocks[x][j].destroy();
 
-        blocks[x][y].destroy();
         return (sum);
     }
 
@@ -175,17 +181,20 @@ public class Board
         for (int i = x + 1; isInside(i, y) && get(i, y).isSame(get(x, y)) && get(i, y).isDestroyable(); i++, ++sum)
             blocks[i][y].destroy();
 
-        blocks[x][y].destroy();
         return (sum);
     }
 
     public void destroy(int x, int y)
     {
         int temp_score = 1;
-        if (canDestroyHorizontally(x, y))
+        boolean dh = canDestroyHorizontally(x, y);
+        boolean dv = canDestroyVertically(x, y);
+        if (dh)
             temp_score += destroyHorizontally(x, y);
-        if (canDestroyVertically(x, y))
+        if (dv)
             temp_score += destroyVertically(x, y);
+
+        get(x, y).destroy();
 
         score += (combo++) * temp_score;
     }
@@ -195,7 +204,7 @@ public class Board
         for (int x = 0; x < width; ++x)
         {
             if (get(x, 0).getType() == Block.Type.Empty) {
-                get(x, 0).setId(Math.abs(random.nextInt(4)));
+                get(x, 0).setId(Math.abs(random.nextInt(nb_blocks)));
                 get(x, 0).setType(Block.Type.Normal);
                 get(x, 0).resetFallStatus();
                 get(x, 0).velocity = 0.f;
