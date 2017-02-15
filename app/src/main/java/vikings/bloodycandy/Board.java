@@ -126,6 +126,17 @@ public class Board
             Block temp = blocks[x1][y1];
             blocks[x1][y1] = blocks[x2][y2];
             blocks[x2][y2] = temp;
+
+            if (x1 != x2)
+            {
+                get(x1, y1).setOffsetX(x1 > x2 ? -1.f : 1.f);
+                get(x2, y2).setOffsetX(x1 < x2 ? -1.f : 1.f);
+            }
+            else
+            {
+                get(x1, y1).setOffsetY(y1 > y2 ? -1.f : 1.f);
+                get(x2, y2).setOffsetY(y1 < y2 ? -1.f : 1.f);
+            }
         }
     }
 
@@ -219,7 +230,8 @@ public class Board
             Block block = get(x, height - 1);
             if (block.isMovable() && !block.isInPlace())
             {
-                block.update(delta_time);
+                block.updateSwap(delta_time);
+                block.updateFall(delta_time);
                 if (block.isInPlace())
                     block.stopFall();
             }
@@ -233,19 +245,21 @@ public class Board
                 if (!block.isMovable())
                     continue;
 
+                block.updateSwap(delta_time);
+
                 int j = y;
                 float remaining_time = delta_time;
                 boolean have_stopped_falling = false;
 
                 do {
-                    remaining_time = block.update(remaining_time);
+                    remaining_time = block.updateFall(remaining_time);
                     Block under_block = get(x, j + 1);
                     if (under_block.isMovable() && block.getFallingStatus() < under_block.getFallingStatus())
                     {//Check for race condition
                         block.setFallingStatus(under_block.getFallingStatus());
                         block.velocity = under_block.velocity;
                     }
-                    else if (block.isInPlace())
+                    else if (block.getFallingStatus() <= 0.f)
                     {
                         if (under_block.getType() == Block.Type.Hole ||
                                 (under_block.isMovable() && !under_block.is_falling))
@@ -259,8 +273,6 @@ public class Board
                             block.resetFallStatus();
                         }
                     }
-
-
                 } while (!have_stopped_falling && remaining_time > 0.f && isInside(x, j + 1));
             }
         }

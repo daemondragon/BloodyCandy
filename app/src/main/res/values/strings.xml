@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">BloodyCandy</string>
-    <string name="score">Score: %d</string>
+    <string name="score">Score: %d000000</string>
 </resources>

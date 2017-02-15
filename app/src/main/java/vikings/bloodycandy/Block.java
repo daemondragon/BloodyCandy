@@ -14,19 +14,25 @@ public class Block
     }
 
     static private float gravity;
+    static private float swap_velocity;
 
     private Type        type;
     private int         id;
-    private float       falling;//[0.f:1.f] 0.f at position, 1.f falling
+    private float       offset_x;
+    private float       offset_y;
+    private float       falling;
     public boolean      is_falling;
     public float        velocity;
 
     public Block(Type type, int id)
     {
+        offset_x = 0.f;
+        offset_y = 0.f;
+        velocity = 0.f;
+
         setType(type);
         setId(id);
         resetFallStatus();
-        velocity = 0.f;
     }
     public Block(Type type)
     {
@@ -63,8 +69,39 @@ public class Block
         return (gravity);
     }
 
+    public static void setSwapVelocity(float velocity)
+    {
+        Block.swap_velocity = (velocity < 0.f ? - velocity : velocity);
+    }
+
+    public static float getSwapVelocity()
+    {
+        return (swap_velocity);
+    }
+
     //return how much time the block didn't move
-    public float update(float time)
+    public void updateSwap(float time)
+    {
+        if (!isMovable())
+            return;
+
+        float swap_movement = swap_velocity * time;
+        if (offset_x != 0.f)
+        {
+            if (swap_movement >= Math.abs(offset_x))
+                offset_x = 0.f;
+            else
+                offset_x += (offset_x < 0.f ? swap_movement : -swap_movement);
+        }
+        if (offset_y != 0.f)
+        {
+            if (swap_movement >= Math.abs(offset_y))
+                offset_y = 0.f;
+            else
+                offset_y += (offset_y < 0.f ? swap_movement : -swap_movement);
+        }
+    }
+    public float updateFall(float time)
     {
         if (!isMovable())
             return (0.f);
@@ -85,9 +122,10 @@ public class Block
             return (not_processed);
         }
     }
+
     public boolean isInPlace()
     {
-        return (falling <= 0.f);
+        return (offset_x == 0.f && offset_y == 0.f && falling <= 0.f);
     }
     public void resetFallStatus()
     {
@@ -103,6 +141,36 @@ public class Block
     {
         return (falling);
     }
+    public void setOffsetX(float offset)
+    {
+        if (offset < -1.f)
+            offset_x = -1.f;
+        else if (offset > 1.f)
+            offset_x = 1.f;
+        else
+            offset_x = offset;
+    }
+
+    public void setOffsetY(float offset)
+    {
+        if (offset < -1.f)
+            offset_y = -1.f;
+        else if (offset > 1.f)
+            offset_y = 1.f;
+        else
+            offset_y = offset;
+    }
+
+    public float getOffsetX()
+    {
+        return (offset_x);
+    }
+
+    public float getOffsetY()
+    {
+        return (offset_y);
+    }
+
     public void setFallingStatus(float status)
     {
         if (status < 0.f)
@@ -122,6 +190,8 @@ public class Block
         type = Type.Empty;
         id = 0;
         velocity = 0.f;
+        offset_x = 0.f;
+        offset_y = 0.f;
     }
     public boolean isMovable()
     {
@@ -129,6 +199,6 @@ public class Block
     }
     public boolean isDestroyable()
     {
-        return (isMovable() && !is_falling);
+        return (isMovable() && isInPlace());
     }
 }

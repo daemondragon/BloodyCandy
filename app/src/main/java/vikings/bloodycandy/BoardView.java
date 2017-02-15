@@ -45,6 +45,7 @@ public class BoardView extends View
 
         board.setNbBlocks(getResources().getInteger(R.integer.nb_blocks));
         Block.setGravity(getResources().getInteger(R.integer.gravity) / 100.f);
+        Block.setSwapVelocity(getResources().getInteger(R.integer.swap_velocity) / 100.f);
 
         lastFrameTime = System.currentTimeMillis();
     }
@@ -121,8 +122,17 @@ public class BoardView extends View
                 Block block = board.get(x, y);
                 if (block.getType() == Block.Type.Normal)
                 {
-                    tiles_dest.top = offset_y + inline_padding / 2 + (int)((y - block.getFallingStatus()) * (tile_size + inline_padding));
-                    tiles_dest.left = offset_x + inline_padding / 2 + x * (tile_size + inline_padding);
+                    if (block.getOffsetX() != 0.f || block.getOffsetY() != 0.f)
+                    {
+                        tiles_dest.top = offset_y + inline_padding / 2 + (int)((y - block.getFallingStatus() + block.getOffsetY()) * (tile_size + inline_padding));
+                        tiles_dest.left = offset_x + inline_padding / 2 + (int)((x + block.getOffsetX()) * (tile_size + inline_padding));
+                    }else
+                    {
+                        tiles_dest.top = offset_y + inline_padding / 2 + (int)((y - block.getFallingStatus() + block.getOffsetY()) * (tile_size + inline_padding));
+                        tiles_dest.left = offset_x + inline_padding / 2 + (int)((x + block.getOffsetX()) * (tile_size + inline_padding));
+                    }
+                    tiles_dest.top = offset_y + inline_padding / 2 + (int)((y - block.getFallingStatus() + block.getOffsetY()) * (tile_size + inline_padding));
+                    tiles_dest.left = offset_x + inline_padding / 2 + (int)((x + block.getOffsetX()) * (tile_size + inline_padding));
                     tiles_dest.bottom = tiles_dest.top + tile_size;
                     tiles_dest.right = tiles_dest.left + tile_size;
 
@@ -138,7 +148,7 @@ public class BoardView extends View
         offset_y = 0;
 
         float inline_ratio = getResources().getInteger(R.integer.inline_padding_ratio) * 0.01f;
-        float ratio = 0.f;
+        float ratio;
         if (w < h)//Portrait
             ratio = w / ((1 + inline_ratio) * board.width());
         else//Landscape
@@ -167,10 +177,6 @@ public class BoardView extends View
         if (board.canSwap(x1, y1, x2, y2))
         {
             board.swap(x1, y1, x2, y2);
-            if (board.canDestroy(x1, y1))
-                board.destroy(x1, x2);
-            if (board.canDestroy(x2, y2))
-                board.destroy(x2, y2);
             return (true);
         }
         else
