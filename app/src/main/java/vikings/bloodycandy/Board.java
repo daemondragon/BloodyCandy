@@ -1,5 +1,7 @@
 package vikings.bloodycandy;
 
+import android.util.Log;
+
 import java.util.Random;
 
 /**
@@ -25,6 +27,8 @@ public class Board
         nb_blocks = 4;
 
         create(width, height);
+
+        set(new Block(Block.Type.Hole), width / 2 , height / 2);
 
         random = new Random();
     }
@@ -85,15 +89,18 @@ public class Board
 
     public boolean canSwap(int x1, int y1, int x2, int y2)
     {
-        if (isInside(x1, x2) && isInside(x2, y2) &&
+        if (isInside(x1, y1) && isInside(x2, y2) &&
                 Math.abs(x1 - x2) + Math.abs(y1 - y2) == 1 &&
                 blocks[x1][y1].isDestroyable() && blocks[x2][y2].isDestroyable())
         {
             boolean some_block_falling = false;
             for (int i = 0; i < width && !some_block_falling; ++i)
                 for (int j = 0; j < height && !some_block_falling; ++j)
-                    if (!get(i, j).isInPlace())
+                    if (!get(i, j).isInPlace()) {
                         some_block_falling = true;
+                        Log.d(".Board::canSwap", "not in place: " + i + ";" + j + " type: " + get(i, j).getType() + ";" + get(i, j).is_falling + ";" + get(i, j).getOffsetX() + ";" + get(i, j).getOffsetY() + ";" + get(i, j).getFallingStatus() + ";" + get(i, j ).isInPlace());
+                    }
+
             if (some_block_falling)
                 return (false);
 
@@ -210,6 +217,24 @@ public class Board
         score += (combo++) * temp_score;
     }
 
+    private boolean canLeftFall(int x, int y)
+    {
+        if (!isInside(x - 1, y + 1) || get(x - 1, y + 1).getType() != Block.Type.Empty)
+            return (false);
+
+        Block left_block = get(x - 1, y);
+        return (!left_block.isMovable() || left_block.getFallingStatus() > 0.9);//1. - 0.5
+    }
+
+    private boolean canRightFall(int x, int y)
+    {
+        if (!isInside(x + 1, y + 1) || get(x + 1, y + 1).getType() != Block.Type.Empty)
+            return (false);
+
+        Block right_block = get(x + 1, y);
+        return (!right_block.isMovable() || right_block.getFallingStatus() > 0.9);//1.4 - 0.5
+    }
+
     private void respawnBlocks()
     {
         for (int x = 0; x < width; ++x)
@@ -263,9 +288,21 @@ public class Board
                     {
                         if (under_block.getType() == Block.Type.Hole ||
                                 (under_block.isMovable() && !under_block.is_falling))
-                        {//Stop fall
-                            block.stopFall();
-                            have_stopped_falling = true;
+                        {//Stop fall or move them to another column if it can
+                            boolean can_left_fall = canLeftFall(x, j);
+                            boolean can_right_fall = canRightFall(x, j);
+
+                            if (can_left_fall || can_right_fall)
+                            {
+                                fastSwap(x, j, x + (can_left_fall ? -1 : 1), j + 1);
+                                block.setOffsetX((can_left_fall ? 1 : -1));
+                                block.resetFallStatus();
+                            }
+                            else
+                            {
+                                block.stopFall();
+                                have_stopped_falling = true;
+                            }
                         }
                         else
                         {//Continue falling

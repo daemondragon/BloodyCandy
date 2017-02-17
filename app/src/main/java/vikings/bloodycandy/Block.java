@@ -125,7 +125,7 @@ public class Block
 
     public boolean isInPlace()
     {
-        return (offset_x == 0.f && offset_y == 0.f && falling <= 0.f);
+        return (!isMovable() || (offset_x == 0.f && offset_y == 0.f && falling <= 0.f));
     }
     public void resetFallStatus()
     {
