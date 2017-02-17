@@ -43,7 +43,7 @@ public class BoardView extends View
         board = new Board(getResources().getInteger(R.integer.nb_blocs_width),
                 getResources().getInteger(R.integer.nb_blocs_height));
 
-        board.setNbBlocks(getResources().getInteger(R.integer.nb_blocks));
+        board.setNbBlocks(getResources().obtainTypedArray(R.array.tiles_pictures).length());
         Block.setGravity(getResources().getInteger(R.integer.gravity) / 100.f);
         Block.setSwapVelocity(getResources().getInteger(R.integer.swap_velocity) / 100.f);
 
@@ -67,10 +67,10 @@ public class BoardView extends View
 
         tiles_pictures = new Bitmap[pictures_id.length()];
         for (int i = 0; i < tiles_pictures.length; ++i)
+        {
             tiles_pictures[i] = BitmapFactory.decodeResource(getResources(), pictures_id.getResourceId(i, 0));
-
-        for (int i = 0; i < 16; ++i)
             Assert.assertNotNull("tiles " + Integer.toString(i) + " is null", tiles_pictures[i]);
+        }
 
         tile_back = BitmapFactory.decodeResource(getResources(), R.drawable.tile_back);
     }
@@ -174,7 +174,7 @@ public class BoardView extends View
         else
             x2 += (e1.getX() > e2.getX() ? -1 : 1);
 
-        if (board.canSwap(x1, y1, x2, y2))
+        if (!board.someBlocksAreFalling() && board.canSwap(x1, y1, x2, y2))
         {
             board.swap(x1, y1, x2, y2);
             return (true);

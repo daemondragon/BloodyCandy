@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <integer name="nb_blocs_width">5</integer>
-    <integer name="nb_blocs_height">5</integer>
+    <integer name="nb_blocs_height">6</integer>
 
     <integer name="gravity">300</integer><!-- gravity will be divide by 100 when loaded-->
     <integer name="swap_velocity">300</integer><!-- gravity will be divide by 100 when loaded-->

@@ -87,23 +87,23 @@ public class Board
     }
 
 
+    public boolean someBlocksAreFalling()
+    {
+        boolean some_block_falling = false;
+        for (int i = 0; i < width && !some_block_falling; ++i)
+            for (int j = 0; j < height && !some_block_falling; ++j)
+                if (!get(i, j).isInPlace() || get(i, j).getType() == Block.Type.Empty)
+                    return (true);
+
+        return (false);
+    }
+
     public boolean canSwap(int x1, int y1, int x2, int y2)
     {
         if (isInside(x1, y1) && isInside(x2, y2) &&
                 Math.abs(x1 - x2) + Math.abs(y1 - y2) == 1 &&
                 blocks[x1][y1].isDestroyable() && blocks[x2][y2].isDestroyable())
         {
-            boolean some_block_falling = false;
-            for (int i = 0; i < width && !some_block_falling; ++i)
-                for (int j = 0; j < height && !some_block_falling; ++j)
-                    if (!get(i, j).isInPlace()) {
-                        some_block_falling = true;
-                        Log.d(".Board::canSwap", "not in place: " + i + ";" + j + " type: " + get(i, j).getType() + ";" + get(i, j).is_falling + ";" + get(i, j).getOffsetX() + ";" + get(i, j).getOffsetY() + ";" + get(i, j).getFallingStatus() + ";" + get(i, j ).isInPlace());
-                    }
-
-            if (some_block_falling)
-                return (false);
-
             //The blocks are next to each other
             fastSwap(x1, y1, x2, y2);
             boolean can_destroy = canDestroy(x1, y1) || canDestroy(x2, y2);
@@ -145,6 +145,24 @@ public class Board
                 get(x2, y2).setOffsetY(y1 < y2 ? -1.f : 1.f);
             }
         }
+    }
+
+    private boolean canMakeAnySwap()
+    {
+        if (someBlocksAreFalling())
+            return (true);
+
+        for (int y = 0; y < height - 1; y++)
+            for (int x = 0; x < width; ++x)
+                if (canSwap(x, y, x, y + 1))
+                    return (true);
+
+        for (int y = 0; y < height; y++)
+            for (int x = 0; x < width - 1; ++x)
+                if (canSwap(x, y, x + 1, y))
+                    return (true);
+
+        return (false);
     }
 
     private boolean canDestroyHorizontally(int x, int y)
@@ -217,22 +235,26 @@ public class Board
         score += (combo++) * temp_score;
     }
 
+    private void reset()
+    {
+        for (int y = 0; y < height; ++y)
+            for (int x = 0; x < width; ++x)
+                if (get(x, y).isMovable())
+                    get(x, y).destroy();
+    }
+
     private boolean canLeftFall(int x, int y)
     {
-        if (!isInside(x - 1, y + 1) || get(x - 1, y + 1).getType() != Block.Type.Empty)
-            return (false);
-
-        Block left_block = get(x - 1, y);
-        return (!left_block.isMovable() || left_block.getFallingStatus() > 0.9);//1. - 0.5
+        return (isInside(x - 1, y - 1) &&
+                get(x - 1, y + 1).getType() == Block.Type.Empty &&
+                !get(x - 1, y).isMovable());
     }
 
     private boolean canRightFall(int x, int y)
     {
-        if (!isInside(x + 1, y + 1) || get(x + 1, y + 1).getType() != Block.Type.Empty)
-            return (false);
-
-        Block right_block = get(x + 1, y);
-        return (!right_block.isMovable() || right_block.getFallingStatus() > 0.9);//1.4 - 0.5
+        return (isInside(x + 1, y - 1) &&
+                get(x + 1, y + 1).getType() == Block.Type.Empty &&
+                !get(x + 1, y).isMovable());
     }
 
     private void respawnBlocks()
@@ -324,6 +346,9 @@ public class Board
             for (int x = 0; x < width; ++x)
                 if (canDestroy(x, y))
                     destroy(x, y);
+
+        if (!canMakeAnySwap())
+            reset();
     }
 
     public int getScore()

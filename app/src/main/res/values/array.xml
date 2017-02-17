@@ -1,21 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <integer-array name="tiles_pictures">
-        <item>@drawable/b1</item>
-        <item>@drawable/b2</item>
-        <item>@drawable/b3</item>
-        <item>@drawable/b4</item>
-        <item>@drawable/b5</item>
-        <item>@drawable/b6</item>
-        <item>@drawable/b7</item>
-        <item>@drawable/b8</item>
-        <item>@drawable/b9</item>
-        <item>@drawable/b10</item>
-        <item>@drawable/b11</item>
-        <item>@drawable/b12</item>
-        <item>@drawable/b13</item>
-        <item>@drawable/b14</item>
-        <item>@drawable/b15</item>
-        <item>@drawable/b16</item>
+        <item>@drawable/jelly_1</item>
+        <item>@drawable/jelly_2</item>
+        <item>@drawable/jelly_3</item>
+        <item>@drawable/jelly_4</item>
+        <item>@drawable/jelly_5</item>
+        <item>@drawable/jelly_6</item>
     </integer-array>
 </resources>
