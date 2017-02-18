@@ -2,12 +2,14 @@
 <resources>
     <integer name="nb_blocs_width">5</integer>
     <integer name="nb_blocs_height">6</integer>
+    <integer name="inline_padding_ratio">25</integer><!-- ratio [0:100] with tile size-->
+    <integer name="border_padding_ratio">50</integer><!-- ratio [0:100] with tile size-->
+
 
     <integer name="gravity">300</integer><!-- gravity will be divide by 100 when loaded-->
     <integer name="swap_velocity">300</integer><!-- gravity will be divide by 100 when loaded-->
 
-    <integer name="inline_padding_ratio">25</integer><!-- ratio [0:100] with tile size-->
-    <integer name="border_padding_ratio">50</integer><!-- ratio [0:100] with tile size-->
+    <integer name="selected_scale">110</integer><!-- the maximum in percent of how the blocks will grow-->
+    <integer name="selected_wave_length">2000</integer><!--in millisecond -->
 
-    <integer name="nb_blocks">5</integer>
 </resources>

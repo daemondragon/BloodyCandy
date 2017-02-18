@@ -2,6 +2,7 @@ package vikings.bloodycandy;
 
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -92,7 +93,7 @@ public class Board
         boolean some_block_falling = false;
         for (int i = 0; i < width && !some_block_falling; ++i)
             for (int j = 0; j < height && !some_block_falling; ++j)
-                if (!get(i, j).isInPlace() || get(i, j).getType() == Block.Type.Empty)
+                if ((get(i, j).isMovable() && get(i, j).is_falling) || get(i, j).getType() == Block.Type.Empty)
                     return (true);
 
         return (false);
@@ -165,6 +166,58 @@ public class Board
         return (false);
     }
 
+    public boolean firstAvailableSwap(ArrayList<Block> blocks)
+    {
+        if (someBlocksAreFalling())
+            return (true);
+
+
+        for (int x = 0; x < width - 1; ++x)
+            for (int y = 0; y < height; ++y)
+                if (canSwap(x, y, x + 1, y))
+                {
+                    fastSwap(x, y, x + 1, y);
+                    if (canDestroy(x, y))
+                    {
+                        blocks.add(get(x, y));
+                        getDestroyHorizontalList(x, y, blocks);
+                        getDestroyVerticalList(x, y, blocks);
+                    }
+                    else
+                    {
+                        blocks.add(get(x + 1, y));
+                        getDestroyHorizontalList(x + 1, y, blocks);
+                        getDestroyVerticalList(x + 1, y, blocks);
+                    }
+                    fastSwap(x, y, x + 1, y);
+                    return (true);
+                }
+
+
+        for (int x = 0; x < width; ++x)
+            for (int y = 0; y < height - 1; ++y)
+                if (canSwap(x, y, x, y + 1))
+                {
+                    fastSwap(x, y, x, y + 1);
+                    if (canDestroy(x, y))
+                    {
+                        blocks.add(get(x, y));
+                        getDestroyHorizontalList(x, y, blocks);
+                        getDestroyVerticalList(x, y, blocks);
+                    }
+                    else
+                    {
+                        blocks.add(get(x, y + 1));
+                        getDestroyHorizontalList(x, y + 1, blocks);
+                        getDestroyVerticalList(x, y + 1, blocks);
+                    }
+                    fastSwap(x, y, x, y + 1);
+                    return (true);
+                }
+
+        return (false);
+    }
+
     private boolean canDestroyHorizontally(int x, int y)
     {
         if (!get(x, y).isDestroyable())
@@ -193,49 +246,57 @@ public class Board
         return (sum_y >= 3);
     }
 
+    private void getDestroyHorizontalList(int x, int y, ArrayList<Block> blocks)
+    {
+        if (canDestroyHorizontally(x, y))
+        {
+            for (int i = x - 1; isInside(i, y) && get(i, y).isSame(get(x, y)) && get(i, y).isDestroyable(); i--)
+            {
+                getDestroyVerticalList(i, y, blocks);
+                blocks.add(get(i, y));
+            }
+            for (int i = x + 1; isInside(i, y) && get(i, y).isSame(get(x, y)) && get(i, y).isDestroyable(); i++)
+            {
+                getDestroyVerticalList(i, y, blocks);
+                blocks.add(get(i, y));
+            }
+        }
+    }
+
+    private void getDestroyVerticalList(int x, int y, ArrayList<Block> blocks)
+    {
+        if (canDestroyVertically(x, y))
+        {
+            for (int j = y - 1; isInside(x, j) && get(x, j).isSame(get(x, y)) && get(x, j).isDestroyable(); j--) {
+                getDestroyHorizontalList(x, j, blocks);
+                blocks.add(get(x, j));
+            }
+            for (int j = y + 1; isInside(x, j) && get(x, j).isSame(get(x, y)) && get(x, j).isDestroyable(); j++) {
+                getDestroyHorizontalList(x, j, blocks);
+                blocks.add(get(x, j));
+            }
+        }
+    }
+
     public boolean canDestroy(int x, int y)
     {
         return (canDestroyHorizontally(x, y) || canDestroyVertically(x, y));
     }
 
-    private int destroyVertically(int x, int y)
-    {
-        int sum = 0;
-        for (int j = y - 1; isInside(x, j) && get(x, j).isSame(get(x, y)) && get(x, j).isDestroyable(); j--, ++sum)
-            blocks[x][j].destroy();
-        for (int j = y + 1; isInside(x, j) && get(x, j).isSame(get(x, y)) && get(x, j).isDestroyable(); j++, ++sum)
-            blocks[x][j].destroy();
-
-        return (sum);
-    }
-
-    private int destroyHorizontally(int x, int y)
-    {
-        int sum = 0;
-        for (int i = x - 1; isInside(i, y) && get(i, y).isSame(get(x, y)) && get(i, y).isDestroyable(); i--, ++sum)
-            blocks[i][y].destroy();
-        for (int i = x + 1; isInside(i, y) && get(i, y).isSame(get(x, y)) && get(i, y).isDestroyable(); i++, ++sum)
-            blocks[i][y].destroy();
-
-        return (sum);
-    }
-
     public void destroy(int x, int y)
     {
-        int temp_score = 1;
-        boolean dh = canDestroyHorizontally(x, y);
-        boolean dv = canDestroyVertically(x, y);
-        if (dh)
-            temp_score += destroyHorizontally(x, y);
-        if (dv)
-            temp_score += destroyVertically(x, y);
+        ArrayList<Block> to_destroy = new ArrayList<>();
+        to_destroy.add(get(x, y));
+        getDestroyHorizontalList(x, y, to_destroy);
+        getDestroyVerticalList(x, y, to_destroy);
 
-        get(x, y).destroy();
-
-        score += (combo++) * temp_score;
+        score += (combo++) * to_destroy.size();
+        for (Block b : to_destroy)
+            if (b.isDestroyable())
+                b.destroy();
     }
 
-    private void reset()
+    public void reset()
     {
         for (int y = 0; y < height; ++y)
             for (int x = 0; x < width; ++x)
@@ -346,13 +407,17 @@ public class Board
             for (int x = 0; x < width; ++x)
                 if (canDestroy(x, y))
                     destroy(x, y);
-
-        if (!canMakeAnySwap())
-            reset();
     }
 
     public int getScore()
     {
         return (score);
+    }
+
+    public void selectAll(boolean b)
+    {
+        for (int x = 0; x < width; ++x)
+            for (int y = 0; y < height; ++y)
+                get(x, y).select(b);
     }
 }

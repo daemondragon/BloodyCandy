@@ -24,15 +24,19 @@ public class Block
     public boolean      is_falling;
     public float        velocity;
 
+    private boolean      selected;
+
     public Block(Type type, int id)
     {
         offset_x = 0.f;
         offset_y = 0.f;
         velocity = 0.f;
+        is_falling = false;
 
         setType(type);
         setId(id);
-        resetFallStatus();
+        if(isMovable())
+            resetFallStatus();
     }
     public Block(Type type)
     {
@@ -196,9 +200,25 @@ public class Block
     public boolean isMovable()
     {
         return (type != Type.Empty && type != Type.Hole);
-    }
+}
     public boolean isDestroyable()
     {
         return (isMovable() && isInPlace());
+    }
+
+    public void select(boolean b)
+    {
+        selected = b && isInPlace();
+    }
+
+    public boolean isSelected()
+    {
+        if (isInPlace())
+            return (selected);
+        else
+        {
+            selected = false;
+            return (false);
+        }
     }
 }
