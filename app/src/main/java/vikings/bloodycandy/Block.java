@@ -83,6 +83,23 @@ public class Block
         return (swap_velocity);
     }
 
+    public boolean isInPlace()
+    {
+        return (!isMovable() || (offset_x == 0.f && offset_y == 0.f && falling <= 0.f));
+    }
+    public boolean isMovable()
+    {
+        return (type != Type.Empty && type != Type.Hole);
+    }
+    public boolean isDestroyable()
+    {
+        return (isMovable() && isInPlace());
+    }
+    public boolean isSame(Block block)
+    {
+        return (type == block.getType() && id == block.getId());
+    }
+
     //return how much time the block didn't move
     public void updateSwap(float time)
     {
@@ -127,10 +144,7 @@ public class Block
         }
     }
 
-    public boolean isInPlace()
-    {
-        return (!isMovable() || (offset_x == 0.f && offset_y == 0.f && falling <= 0.f));
-    }
+
     public void resetFallStatus()
     {
         falling = 1.f;
@@ -185,10 +199,6 @@ public class Block
             falling = status;
     }
 
-    public boolean isSame(Block block)
-    {
-        return (type == block.getType() && id == block.getId());
-    }
     public void destroy()
     {
         type = Type.Empty;
@@ -196,14 +206,6 @@ public class Block
         velocity = 0.f;
         offset_x = 0.f;
         offset_y = 0.f;
-    }
-    public boolean isMovable()
-    {
-        return (type != Type.Empty && type != Type.Hole);
-}
-    public boolean isDestroyable()
-    {
-        return (isMovable() && isInPlace());
     }
 
     public void select(boolean b)

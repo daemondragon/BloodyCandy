@@ -106,8 +106,13 @@ public class BoardView extends View
         drawBlocks(canvas);
 
         boolean actual_can_fall = board.someBlocksAreFalling();
-        if (previous_can_fall && !actual_can_fall)
-            need_to_be_selected_time = System.currentTimeMillis();
+        if (previous_can_fall)
+        {
+            have_blocks_selected = false;
+            if (!actual_can_fall)
+                need_to_be_selected_time = System.currentTimeMillis();
+        }
+
 
         if (lastFrameTime - need_to_be_selected_time > 5000 && !have_blocks_selected)
         {
@@ -218,7 +223,6 @@ public class BoardView extends View
         {
             board.swap(x1, y1, x2, y2);
             board.selectAll(false);
-            have_blocks_selected = false;
             return (true);
         }
         else
