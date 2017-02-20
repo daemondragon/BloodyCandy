@@ -29,7 +29,9 @@ public class Board
 
         create(width, height);
 
-        set(new Block(Block.Type.Hole), width / 2 , height / 2);
+        //for (int i = 0; i < width - 1; ++i)
+            //set(new Block(Block.Type.Hole), i, 1);
+
 
         random = new Random();
     }
@@ -93,7 +95,7 @@ public class Board
         boolean some_block_falling = false;
         for (int i = 0; i < width && !some_block_falling; ++i)
             for (int j = 0; j < height && !some_block_falling; ++j)
-                if ((get(i, j).isMovable() && get(i, j).is_falling) || get(i, j).getType() == Block.Type.Empty)
+                if ((get(i, j).isMovable() && get(i, j).is_falling))
                     return (true);
 
         return (false);
@@ -171,7 +173,6 @@ public class Board
         if (someBlocksAreFalling())
             return (true);
 
-
         for (int x = 0; x < width - 1; ++x)
             for (int y = 0; y < height; ++y)
                 if (canSwap(x, y, x + 1, y))
@@ -246,36 +247,46 @@ public class Board
         return (sum_y >= 3);
     }
 
-    private void getDestroyHorizontalList(int x, int y, ArrayList<Block> blocks)
+    private void getDestroyHorizontalList(int x, int y, ArrayList<Block> blocks, int recursion_limit)
     {
-        if (canDestroyHorizontally(x, y))
+        if (recursion_limit > 0 && canDestroyHorizontally(x, y))
         {
             for (int i = x - 1; isInside(i, y) && get(i, y).isSame(get(x, y)) && get(i, y).isDestroyable(); i--)
             {
-                getDestroyVerticalList(i, y, blocks);
+                getDestroyVerticalList(i, y, blocks, recursion_limit - 1);
                 blocks.add(get(i, y));
             }
             for (int i = x + 1; isInside(i, y) && get(i, y).isSame(get(x, y)) && get(i, y).isDestroyable(); i++)
             {
-                getDestroyVerticalList(i, y, blocks);
+                getDestroyVerticalList(i, y, blocks, recursion_limit - 1);
                 blocks.add(get(i, y));
+            }
+        }
+    }
+
+    private void getDestroyHorizontalList(int x, int y, ArrayList<Block> blocks)
+    {
+        getDestroyHorizontalList(x, y, blocks, 3);
+    }
+
+    private void getDestroyVerticalList(int x, int y, ArrayList<Block> blocks, int recursion_limit)
+    {
+        if (recursion_limit > 0 && canDestroyVertically(x, y))
+        {
+            for (int j = y - 1; isInside(x, j) && get(x, j).isSame(get(x, y)) && get(x, j).isDestroyable(); j--) {
+                getDestroyHorizontalList(x, j, blocks, recursion_limit - 1);
+                blocks.add(get(x, j));
+            }
+            for (int j = y + 1; isInside(x, j) && get(x, j).isSame(get(x, y)) && get(x, j).isDestroyable(); j++) {
+                getDestroyHorizontalList(x, j, blocks, recursion_limit - 1);
+                blocks.add(get(x, j));
             }
         }
     }
 
     private void getDestroyVerticalList(int x, int y, ArrayList<Block> blocks)
     {
-        if (canDestroyVertically(x, y))
-        {
-            for (int j = y - 1; isInside(x, j) && get(x, j).isSame(get(x, y)) && get(x, j).isDestroyable(); j--) {
-                getDestroyHorizontalList(x, j, blocks);
-                blocks.add(get(x, j));
-            }
-            for (int j = y + 1; isInside(x, j) && get(x, j).isSame(get(x, y)) && get(x, j).isDestroyable(); j++) {
-                getDestroyHorizontalList(x, j, blocks);
-                blocks.add(get(x, j));
-            }
-        }
+        getDestroyVerticalList(x, y, blocks, 3);
     }
 
     public boolean canDestroy(int x, int y)

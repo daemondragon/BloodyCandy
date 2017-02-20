@@ -22,6 +22,7 @@ public class Game extends Activity
 
         board = (BoardView)findViewById(R.id.board);
         board.setScoreView((TextView)findViewById(R.id.score));
+        board.setConditionView((TextView)findViewById(R.id.condition));
         gesture_detector = new GestureDetector(this, new GestureDetector.OnGestureListener() {
             @Override
             public boolean onDown(MotionEvent e) {

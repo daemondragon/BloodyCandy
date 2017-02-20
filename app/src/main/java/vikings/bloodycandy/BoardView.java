@@ -12,6 +12,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import junit.framework.Assert;
 
@@ -23,6 +24,12 @@ import java.util.ArrayList;
 
 public class BoardView extends View
 {
+    enum GameType
+    {
+        None,
+        Timed,
+        MoveLimited
+    }
     private static boolean     loaded_pictures = false;
     private static Bitmap[]    tiles_pictures;
     private static Bitmap      tile_back;
@@ -36,12 +43,15 @@ public class BoardView extends View
     private float selected_scale_factor;
     private float selected_wave_length;
 
-    private Board board;
-    private long lastFrameTime;
-    private TextView score = null;
+    private Board       board;
+    private GameType    game_type;
+    private long        lastFrameTime;
+    private TextView    score = null;
+    private TextView    condition = null;
 
     private long need_to_be_selected_time;
     private boolean have_blocks_selected;
+    private boolean blocks_falling_last_frame;
 
     public BoardView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -49,8 +59,9 @@ public class BoardView extends View
         loadPictures();
 
         tiles_dest = new Rect();
-        board = new Board(getResources().getInteger(R.integer.nb_blocs_width),
-                getResources().getInteger(R.integer.nb_blocs_height));
+        board = new MoveLimitedBoard(getResources().getInteger(R.integer.nb_blocs_width),
+                getResources().getInteger(R.integer.nb_blocs_height), 10);
+        game_type = GameType.MoveLimited;
 
         board.setNbBlocks(getResources().obtainTypedArray(R.array.tiles_pictures).length());
         Block.setGravity(getResources().getInteger(R.integer.gravity) / 100.f);
@@ -69,6 +80,10 @@ public class BoardView extends View
     public void setScoreView(TextView view)
     {
         score = view;
+    }
+    public void setConditionView(TextView view)
+    {
+        condition = view;
     }
 
     public void loadPictures()
@@ -95,8 +110,6 @@ public class BoardView extends View
     {
         super.onDraw(canvas);
 
-        boolean previous_can_fall = board.someBlocksAreFalling();
-
         long currentFrameTime = System.currentTimeMillis();
         board.update((currentFrameTime - lastFrameTime) / 1000.f);
         lastFrameTime = currentFrameTime;
@@ -105,27 +118,7 @@ public class BoardView extends View
         drawBoard(canvas);
         drawBlocks(canvas);
 
-        boolean actual_can_fall = board.someBlocksAreFalling();
-        if (previous_can_fall)
-        {
-            have_blocks_selected = false;
-            if (!actual_can_fall)
-                need_to_be_selected_time = System.currentTimeMillis();
-        }
-
-
-        if (lastFrameTime - need_to_be_selected_time > 5000 && !have_blocks_selected)
-        {
-            ArrayList<Block> to_select = new ArrayList<>();
-            if (board.firstAvailableSwap(to_select))
-            {
-                for (Block b : to_select)
-                    b.select(true);
-                have_blocks_selected = true;
-            }
-            else
-                board.reset();
-        }
+        showPossibleMoveOrReset();
 
         invalidate();
     }
@@ -134,6 +127,22 @@ public class BoardView extends View
     {
         if (score != null)
             score.setText(String.format(getResources().getString(R.string.score), board.getScore()));
+        if (condition != null)
+        {
+            switch (game_type)
+            {
+                case Timed:
+                    condition.setText(String.format(getResources().getString(R.string.remaining_time),
+                            (int)((TimedBoard)board).getRemainingTime()));
+                    break;
+                case MoveLimited:
+                    condition.setText(String.format(getResources().getString(R.string.remaining_move),
+                            ((MoveLimitedBoard)board).getRemainingMove()));
+                    break;
+                default:
+                    condition.setText("");
+            }
+        }
     }
     void drawBoard(Canvas canvas)
     {
@@ -185,6 +194,36 @@ public class BoardView extends View
                 }
             }
         }
+    }
+
+    public void showPossibleMoveOrReset()
+    {
+        boolean blocks_falling_this_frame = board.someBlocksAreFalling();
+        if (blocks_falling_last_frame)
+        {
+            have_blocks_selected = false;
+            if (!blocks_falling_this_frame)
+                need_to_be_selected_time = System.currentTimeMillis();
+        }
+
+        if (lastFrameTime - need_to_be_selected_time > 5000 && !have_blocks_selected)
+        {
+            ArrayList<Block> to_select = new ArrayList<>();
+            if (board.firstAvailableSwap(to_select))
+            {
+                for (Block b : to_select)
+                    b.select(true);
+                have_blocks_selected = true;
+            }
+            else
+            {
+                Toast toast = Toast.makeText(getContext(), getResources().getString(R.string.reset_board), Toast.LENGTH_LONG);
+                toast.show();
+                board.reset();
+            }
+        }
+
+        blocks_falling_last_frame = blocks_falling_this_frame;
     }
 
     public void onSizeChanged (int w, int h, int old_w, int old_h)
