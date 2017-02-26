@@ -1,6 +1,9 @@
 package vikings.bloodycandy;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -30,9 +33,6 @@ public class BoardView extends View
         Timed,
         MoveLimited
     }
-    private static boolean     loaded_pictures = false;
-    private static Bitmap[]    tiles_pictures;
-    private static Bitmap      tile_back;
     private Rect tiles_dest;
 
     private int tile_size;
@@ -53,14 +53,14 @@ public class BoardView extends View
     private boolean have_blocks_selected;
     private boolean blocks_falling_last_frame;
 
+    private boolean have_showed_dialog = false;
+
     public BoardView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
-        loadPictures();
-
         tiles_dest = new Rect();
         board = new MoveLimitedBoard(getResources().getInteger(R.integer.nb_blocs_width),
-                getResources().getInteger(R.integer.nb_blocs_height), 10);
+                getResources().getInteger(R.integer.nb_blocs_height), 5);
         game_type = GameType.MoveLimited;
 
         board.setNbBlocks(getResources().obtainTypedArray(R.array.tiles_pictures).length());
@@ -68,7 +68,6 @@ public class BoardView extends View
         Block.setSwapVelocity(getResources().getInteger(R.integer.swap_velocity) / 100.f);
 
         selected_scale_factor = (getResources().getInteger(R.integer.selected_scale) - 100) / 100.f;
-        Log.d(".Board", "scale: " + selected_scale_factor);
 
         selected_wave_length = getResources().getInteger(R.integer.selected_wave_length);
 
@@ -86,25 +85,6 @@ public class BoardView extends View
         condition = view;
     }
 
-    public void loadPictures()
-    {
-        if (loaded_pictures)
-            return;
-
-        loaded_pictures = true;
-
-        TypedArray pictures_id = getResources().obtainTypedArray(R.array.tiles_pictures);
-        Assert.assertNotNull("pictures_id is null", pictures_id);
-
-        tiles_pictures = new Bitmap[pictures_id.length()];
-        for (int i = 0; i < tiles_pictures.length; ++i)
-        {
-            tiles_pictures[i] = BitmapFactory.decodeResource(getResources(), pictures_id.getResourceId(i, 0));
-            Assert.assertNotNull("tiles " + Integer.toString(i) + " is null", tiles_pictures[i]);
-        }
-
-        tile_back = BitmapFactory.decodeResource(getResources(), R.drawable.tile_back);
-    }
 
     public void onDraw(Canvas canvas)
     {
@@ -117,6 +97,7 @@ public class BoardView extends View
         drawBackground(canvas);
         drawBoard(canvas);
         drawBlocks(canvas);
+
 
         showPossibleMoveOrReset();
 
@@ -146,21 +127,12 @@ public class BoardView extends View
     }
     void drawBoard(Canvas canvas)
     {
-        for (int x = 0; x < board.width(); ++x)
-        {
-            for (int y = 0; y < board.height(); ++y)
-            {
-                if (board.get(x, y).getType() != Block.Type.Hole)
-                {
-                    tiles_dest.top = y * (tile_size + inline_padding) + offset_y;
-                    tiles_dest.left = x * (tile_size + inline_padding) + offset_x;
-                    tiles_dest.bottom = tiles_dest.top + tile_size + inline_padding;
-                    tiles_dest.right = tiles_dest.left + tile_size + inline_padding;
+        tiles_dest.top = 0;
+        tiles_dest.left = 0;
+        tiles_dest.right = getWidth();
+        tiles_dest.bottom = getHeight();
 
-                    canvas.drawBitmap(tile_back, null, tiles_dest, null);
-                }
-            }
-        }
+        canvas.drawBitmap(PicturesManager.background[0], null, tiles_dest, null);
     }
     void drawBlocks(Canvas canvas)
     {
@@ -190,7 +162,7 @@ public class BoardView extends View
                     tiles_dest.bottom = (int)(center_y + half_tile_size * scale);
                     tiles_dest.right = (int)(center_x + half_tile_size * scale);
 
-                    canvas.drawBitmap(tiles_pictures[block.getId()], null, tiles_dest, null);
+                    canvas.drawBitmap(PicturesManager.tiles[block.getId()], null, tiles_dest, null);
                 }
             }
         }
@@ -215,21 +187,72 @@ public class BoardView extends View
                     b.select(true);
                 have_blocks_selected = true;
             }
-            else
+            else if (!board.isFinished())
             {
                 Toast toast = Toast.makeText(getContext(), getResources().getString(R.string.reset_board), Toast.LENGTH_LONG);
                 toast.show();
                 board.reset();
             }
+            else
+                showEndMessage();
         }
 
         blocks_falling_last_frame = blocks_falling_this_frame;
     }
 
+    public void showEndMessage()
+    {
+        if (have_showed_dialog)
+            return;
+        have_showed_dialog = true;
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        if (board.win())
+        {
+            builder.setTitle(R.string.win);
+            builder.setPositiveButton(R.string.continue_, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    board.fullReset();
+                    have_showed_dialog = false;
+                } });
+            builder.setNegativeButton(R.string.quit, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    ((Activity)getContext()).finish();
+                    have_showed_dialog = false;
+                } });
+        }
+        else
+        {
+            builder.setTitle(R.string.lose);
+            builder.setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    board.fullReset();
+                    have_showed_dialog = false;
+                } });
+            builder.setNegativeButton(R.string.quit, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    ((Activity)getContext()).finish();
+                    have_showed_dialog = false;
+                } });
+        }
+
+        builder.create().show();
+    }
+
     public void onSizeChanged (int w, int h, int old_w, int old_h)
+    {
+
+
+
+    }
+
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
     {
         offset_x = 0;
         offset_y = 0;
+
+        int w = MeasureSpec.getSize(widthMeasureSpec);
+        int h = MeasureSpec.getSize(heightMeasureSpec);
 
         float inline_ratio = getResources().getInteger(R.integer.inline_padding_ratio) * 0.01f;
         float ratio;
@@ -243,6 +266,17 @@ public class BoardView extends View
 
         if (w < h)//Portrait
             offset_y = getHeight() - (tile_size + inline_padding) * board.height();
+
+        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+        if (heightMode == MeasureSpec.UNSPECIFIED ||
+                (heightMode == MeasureSpec.AT_MOST && h > w))
+            setMeasuredDimension(w, w);
+        else
+        {
+            Log.d("Fuck", "Fuck");
+            setMeasuredDimension(w, h);
+        }
+
     }
 
     public boolean onFling(MotionEvent e1, MotionEvent e2)

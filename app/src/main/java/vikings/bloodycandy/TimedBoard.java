@@ -22,8 +22,19 @@ public class TimedBoard extends Board
         actual_time -= delta_time;
     }
 
+    public void fullReset()
+    {
+        super.fullReset();
+        actual_time = time_limit;
+    }
+
     public float getRemainingTime()
     {
         return (actual_time);
+    }
+
+    public boolean isFinished()
+    {
+        return (actual_time <= 0.f);
     }
 }

@@ -15,11 +15,14 @@ public class Menu extends Activity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu);
+
+        PicturesManager.load(getResources());
     }
 
     public void launchGame(View v)
     {
-        startActivity(new Intent(this, Game.class));
+        if (PicturesManager.isInitialized())
+            startActivity(new Intent(this, Game.class));
     }
 
     public void quit(View v)

@@ -20,6 +20,8 @@ public class Board
     int score;
     int combo;
 
+    private boolean     paused = false;
+
     public Board(int width, int height)
     {
         this.width = 0;
@@ -31,7 +33,7 @@ public class Board
 
         //for (int i = 0; i < width - 1; ++i)
             //set(new Block(Block.Type.Hole), i, 1);
-
+        fullReset();
 
         random = new Random();
     }
@@ -99,6 +101,17 @@ public class Board
                     return (true);
 
         return (false);
+    }
+
+    //Stop if encounter a HOLE block
+    public boolean someBlocksAreFallingAbove(int x, int y)
+    {
+         int j = y - 1;
+        for (; isInside(x, j) && get(x, j).getType() != Block.Type.Hole; --j)
+            if (get(x, j).isMovable())
+                return (true);
+        return (j < 0);
+
     }
 
     public boolean canSwap(int x1, int y1, int x2, int y2)
@@ -307,6 +320,14 @@ public class Board
                 b.destroy();
     }
 
+    public void fullReset()
+    {
+        reset();
+        score = 0;
+        combo = 1;
+        pause(false);
+    }
+
     public void reset()
     {
         for (int y = 0; y < height; ++y)
@@ -317,16 +338,16 @@ public class Board
 
     private boolean canLeftFall(int x, int y)
     {
-        return (isInside(x - 1, y - 1) &&
+        return (isInside(x - 1, y + 1) &&
                 get(x - 1, y + 1).getType() == Block.Type.Empty &&
-                !get(x - 1, y).isMovable());
+                !someBlocksAreFallingAbove(x - 1, y + 1));
     }
 
     private boolean canRightFall(int x, int y)
     {
-        return (isInside(x + 1, y - 1) &&
+        return (isInside(x + 1, y + 1) &&
                 get(x + 1, y + 1).getType() == Block.Type.Empty &&
-                !get(x + 1, y).isMovable());
+                !someBlocksAreFallingAbove(x + 1, y + 1));
     }
 
     private void respawnBlocks()
@@ -411,6 +432,9 @@ public class Board
 
     public void update(float delta_time)
     {
+        if (isPaused())
+            return;
+
         moveBlocks(delta_time);
         respawnBlocks();
 
@@ -430,5 +454,25 @@ public class Board
         for (int x = 0; x < width; ++x)
             for (int y = 0; y < height; ++y)
                 get(x, y).select(b);
+    }
+
+    public void pause(boolean b)
+    {
+        paused = b;
+    }
+
+    public boolean isPaused()
+    {
+        return (paused);
+    }
+
+    public boolean isFinished()
+    {//Need to be overwritten for children class
+        return (false);
+    }
+
+    public boolean win()
+    {
+        return (false);
     }
 }

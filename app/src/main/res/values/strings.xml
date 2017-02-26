@@ -8,4 +8,8 @@
     <string name="launch_game">Launch game</string>
     <string name="quit">Quit</string>
     <string name="reset_board">No more move, resetting board</string>
+    <string name="win">You win</string>
+    <string name="lose">You lose</string>
+    <string name="retry">Retry?</string>
+    <string name="continue_">Continue</string>
 </resources>

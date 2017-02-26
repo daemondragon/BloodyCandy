@@ -8,4 +8,11 @@
         <item>@drawable/jelly_5</item>
         <item>@drawable/jelly_6</item>
     </integer-array>
+
+    <integer-array name="background_pictures">
+        <item>@drawable/colored_castle</item>
+        <item>@drawable/colored_desert</item>
+        <item>@drawable/colored_forest</item>
+        <item>@drawable/colored_tall_trees</item>
+    </integer-array>
 </resources>
